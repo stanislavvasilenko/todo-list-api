@@ -3,8 +3,9 @@
 namespace Database\Factories;
 
 use App\Models\Task;
-use App\Models\Status;
+use App\Models\User;
 use App\Models\Priority;
+use App\Models\Enums\TaskStatusEnum;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,7 +22,8 @@ class TaskFactory extends Factory
     public function definition(): array
     {
         return [
-            'status_id' => 1,
+            'status_id' => TaskStatusEnum::TODO,
+            'user_id' => User::get()->random()->id,
             'priority_id' => Priority::get()->random()->id,
             'title' => fake()->sentence(),
             'description' => fake()->text(),

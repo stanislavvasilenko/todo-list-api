@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Task;
 
+use App\Models\Priority;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateRequest extends FormRequest
@@ -21,9 +22,10 @@ class CreateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $available_priorities = Priority::all()->pluck('id');
         return [
             'parent_task_id' => '',
-            'priority_id' => 'integer',
+            'priority_id' => 'integer|in:' . implode(',', $available_priorities->all()),
             'title' => 'string',
             'description' => 'string',
         ];

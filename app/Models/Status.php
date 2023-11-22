@@ -2,19 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Status extends Model
 {
     use HasFactory;
 
     protected $guarded = false;
+    protected $table = 'statuses';
 
-    public const STATUS_TODO = 1;
-    public const STATUS_DONE = 2;
-
-    public function tasks() {
-        return $this->hasMany(Task::class, 'task_id', 'id');
-    }
+    // public function tasks() : HasMany
+    // {
+    //     return $this->hasMany(Task::class, 'task_id', 'id');
+    // }
 }

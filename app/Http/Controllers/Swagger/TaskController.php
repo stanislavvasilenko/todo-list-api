@@ -181,6 +181,13 @@ use App\Http\Controllers\Controller;
  *          ),
  *      ),
  *  ),
+ *  @OA\Response(
+ *      response=500,
+ *      description="Ok",
+ *      @OA\JsonContent(
+ *          @OA\Property(property="message", type="object", example=""),
+ *      ),
+ *  ),
  * ),
  * 
  * @OA\Delete(

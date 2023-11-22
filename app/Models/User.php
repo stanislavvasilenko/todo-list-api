@@ -7,12 +7,15 @@ use App\Models\Task;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
+
+    protected $table = 'users';
 
     /**
      * The attributes that are mass assignable.
@@ -45,8 +48,9 @@ class User extends Authenticatable implements JWTSubject
         'password' => 'hashed',
     ];
 
-    public function tasks() {
-        return $this->belongsToMany(Task::class, 'user_tasks', 'user_id', 'task_id');
+    public function tasks() : HasMany
+    {
+        return $this->hasMany(Task::class, 'user_id', 'id');
     }
 
     /**

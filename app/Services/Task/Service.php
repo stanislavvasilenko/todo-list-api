@@ -8,22 +8,19 @@ use App\Models\Status;
 use App\Models\Priority;
 use App\Http\Filters\TaskFilter;
 use Illuminate\Support\Facades\DB;
+use App\Models\Enums\TaskStatusEnum;
 
 class Service
 {
    public function store($data) {
 
+
       try {
          DB::beginTransaction();
 
-         if (!in_array($data['priority_id'], Priority::all()->pluck('id')->all())) {
-            throw new \Exception("Choose priority_id from 1 to 5");
-         }
-
-         $data['status_id'] = Status::STATUS_TODO;
-         $task = dd(Task::create($data));
-
-         $task->users()->attach(auth('api')->user()->id);
+         $data['status_id'] = TaskStatusEnum::TODO->value;
+         $data['user_id'] = auth('api')->user()->id;
+         $task = Task::create($data);
 
          DB::commit();
       } catch (\Exception $e) {
@@ -39,15 +36,9 @@ class Service
       try {
          DB::beginTransaction();
 
-         $user = User::find(auth('api')->user()->id);
-
-         if (count($user->tasks()->whereIn('task_id', [$task->id])->get()) == 0) {
-            throw new \Exception("There is no such task for current user");
-         }
-
          $children = $this->filterByStatus($task->children);
          if (count($children) > 0) {
-            throw new \Exception("You cannot complete a task it has unfinished subtasks");
+            throw new \Exception("You cannot complete a task, it has unfinished subtasks");
          }
 
          $task->update($data);
@@ -63,10 +54,10 @@ class Service
 
    private function filterByStatus($collection, $layers = 0) {
 
-      if (count($collection) == 0) return [];
+      if (count($collection) === 0) return [];
 
       $filtered = $collection->filter(function ($value, $key) {
-         return $value->status_id != Status::STATUS_DONE;
+         return $value->status_id != TaskStatusEnum::DONE->value;
       });
 
       if (count($filtered) > 0) {
@@ -81,13 +72,7 @@ class Service
    }
 
    public function delete(Task $task) {
-      $user = User::find(auth('api')->user()->id);
-      if (!count($user->tasks()->whereIn('task_id', [$task->id])->get())) {
-         $result = "There is no such task for current user";
-      }
-
-
-      if ($task->status_id != Status::STATUS_DONE) {
+      if ($task->status_id != TaskStatusEnum::DONE->value) {
          $task->delete();
          $result = "Task was successfully deleted";
       }

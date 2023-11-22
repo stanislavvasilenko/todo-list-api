@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\Task\CreateRequest;
 use App\Http\Requests\Task\UpdateRequest;
 use App\Http\Resources\Task\TaskResource;
@@ -49,13 +50,11 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        $user = User::find(auth('api')->user()->id);
-        if (count($user->tasks()->whereIn('task_id', [$task->id])->get())) {
-            return TaskResource::make($task);
-        }
-        else {
-            return "There is no such task for current user";
-        }
+        $response = Gate::inspect('view', $task);
+        return $response->allowed() 
+            ? TaskResource::make($task)
+            : $response->message();
+
     }
 
     /**
@@ -71,11 +70,17 @@ class TaskController extends Controller
      */
     public function update(UpdateRequest $request, Task $task)
     {
-        $data = $request->validated();
+        $response = Gate::inspect('update', $task);
+        if ($response->allowed()) {
+            $data = $request->validated();
 
-        $task = $this->service->update($task, $data);
+            $task = $this->service->update($task, $data);
 
-        return $task["error_message"] ?? TaskResource::make($task);
+            return $task["error_message"] ?? TaskResource::make($task);
+        }
+        else {
+            return $response->message();
+        }
     }
 
     /**
@@ -83,10 +88,17 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        $result = $this->service->delete($task);
+        $response = Gate::inspect('delete', $task);
 
-        return response()->json([
-            'message' => $result,
-        ]);
+        if ($response->allowed()) {
+            $result = $this->service->delete($task);
+
+            return response()->json([
+                'message' => $result,
+            ]);
+        }
+        else {
+            return $response->message();
+        }
     }
 }
